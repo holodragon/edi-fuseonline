@@ -1,0 +1,14 @@
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: tcp-in
+    port: 2222
+    protocol: TCP
+    targetPort: 2222
+  - name: tcp-out
+    port: 3333
+    protocol: TCP
+    targetPort: 3333

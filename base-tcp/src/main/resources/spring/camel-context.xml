@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <!--  <bean class="org.apache.camel.component.jms.JmsConfiguration"
+        id="amqJmsConfig" scope="singleton">
+        <property name="connectionFactory" ref="amqPooledConnectionFactory"/>
+        <property name="concurrentConsumers" value="1"/>
+        <property name="maxConcurrentConsumers" value="1"/>
+        <property name="cacheLevelName" value="CACHE_CONSUMER"/>
+        <property name="transacted" value="true"/>
+        <property name="transactionManager" ref="amqTransactionManager"/>
+    </bean>
+    <bean
+        class="org.springframework.jms.connection.JmsTransactionManager"
+        id="amqTransactionManager" scope="singleton">
+        <property name="connectionFactory" ref="amqPooledConnectionFactory"/>
+    </bean>
+    <bean
+        class="org.springframework.boot.autoconfigure.jms.activemq.ActiveMQConnectionFactoryConfiguration$PooledConnectionFactoryConfiguration"
+        id="amqPooledConnectionFactory" scope="singleton">
+        <property name="maxConnections" value="2"/>
+        <property name="connectionFactory">
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                <property name="brokerURL" value="${amq.brokerURL}"/>
+                <property name="userName" value="${amq.userName}"/>
+                <property name="password" value="${amq.password}"/>
+            </bean>
+        </property>
+    </bean> -->
+    <!-- <bean
+        class="org.infinispan.spring.provider.SpringRemoteCacheManagerFactoryBean" id="cacheManagerFactory">
+        <property name="configurationProperties">
+            <props>
+                <prop key="infinispan.client.hotrod.server_list">${infinispan.ip}:${infinispan.port}</prop>
+                <prop key="infinispan.client.hotrod.force_return_values">true</prop>
+            </props>
+        </property>
+    </bean>
+    <bean destroy-method="stop" factory-bean="cacheManagerFactory"
+        factory-method="getNativeCacheManager" id="cacheManager" init-method="start"/>
+    <bean
+        class="org.apache.camel.component.infinispan.processor.idempotent.InfinispanIdempotentRepository"
+        factory-method="infinispanIdempotentRepository" id="infinispanRepo">
+        <constructor-arg ref="cacheManager"/>
+        <constructor-arg value="idempotent"/>
+    </bean> -->
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <route id="base-tcp-request-route">
+            <from id="_from1" uri="amqp:queue:input.json"/>
+            <log id="correlatationid" message=">>> JMSCorrelationID: ${header.JMSCorrelationID}"/>
+            <log id="jsmtype" message=">>> JMSType: [${header.JMSType}]"/>
+            <!-- <setHeader headerName="CamelInfinispanKey" id="setinfinispankey_put">
+                <simple>${header.JMSType}</simple>
+            </setHeader>
+            <setHeader headerName="CamelInfinispanValue" id="setinfinspanvalue_put">
+                <simple>${header.JMSCorrelationID}</simple>
+            </setHeader>
+            <to id="infinispan_put" uri="infinispan://{{infinispan.ip}}:{{infinispan.port}}?cacheContainer=#cacheManager&amp;command=PUT"/> -->
+            <!-- <convertBodyTo charset="BIG5" id="_convertBodyTo1" type="java.lang.byte[]"/> -->
+            <log id="_log3" message=">>> ${body}"/>
+            <to id="_to3" uri="txfrmr:com.redhat.firstbank.poc/MapREQ"/>
+            <log id="_log1" message=">>> ${body}"/>
+            <to id="_to2" uri="netty4:tcp://{{socket.out.host}}:{{socket.out.port}}?reuseChannel=true&amp;sync=false&amp;producerPoolMaxActive=1&amp;producerPoolMinEvictableIdle=0"/>
+        </route>
+        <route id="base-tcp-response-route" shutdownRoute="Defer">
+            <from id="_from2" uri="netty4:tcp://{{socket.in.host}}:{{socket.in.port}}?reuseChannel=true&amp;sync=false&amp;producerPoolMaxActive=1&amp;producerPoolMinEvictableIdle=0"/>
+            <log id="_log2" message=">>> ${body}"/>
+            <to id="_to4" uri="txfrmr:com.redhat.firstbank.poc/MapRESP"/>
+            <log id="_log4" message=">>> ${body}"/>
+            <to id="_to1" uri="amqp:queue:output.json"/>
+        </route>
+    </camelContext>
+</beans>
