@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <restConfiguration bindingMode="auto" component="servlet"
+            host="0.0.0.0" port="8080"/>
+        <rest apiDocs="true" enableCORS="true" id="bank-rest">
+            <get id="deposit" uri="/deposit/{acctNo}/{custId}">
+                <to uri="direct:deposit"/>
+            </get>
+        </rest>
+        <route id="simple-route">
+            <from id="_from1" uri="direct:deposit"/>
+            <log id="_log1" message="REST Input: ${body}"/>
+            <to id="_to1" uri="freemarker:ftl/deposit.ftl"/>
+            <log id="_log2" message="REST Output ${body}"/>
+            <setHeader headerName="replyTo" id="_setHeader1">
+                <simple>queue://output.json</simple>
+            </setHeader>
+            <to id="_to2" pattern="InOnly" uri="amqp:queue:input.json?jmsMessageType=Text"/>
+        </route>
+    </camelContext>
+</beans>
