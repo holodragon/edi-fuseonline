@@ -11,7 +11,8 @@
 	<description>Mock TCP Backend HOST Project</description>
 	<properties>
 		<spring-boot.version>1.5.4.RELEASE</spring-boot.version>
-		<infinispan.version>9.4.6.Final-redhat-00002</infinispan.version>
+		<version.infinispan.starter>1.0.7.Final-redhat-00004</version.infinispan.starter>
+		<version.infinispan>9.4.6.Final-redhat-00002</version.infinispan>
 		<fuse.version>7.3.0.fuse-730058-redhat-00001</fuse.version>
 		<maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,9 +30,14 @@
 			<dependency>
 				<groupId>org.infinispan</groupId>
 				<artifactId>infinispan-bom</artifactId>
-				<version>${infinispan.version}</version>
+				<version>${version.infinispan}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.infinispan</groupId>
+				<artifactId>infinispan-spring-boot-starter</artifactId>
+				<version>${version.infinispan.starter}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -62,6 +68,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-spring-boot-starter-embedded</artifactId>
+			<version>${version.infinispan.starter}</version>
+		</dependency>
+
+		<!-- <dependency>
+			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-spring4-embedded</artifactId>
 			<exclusions>
 				<exclusion>
@@ -76,12 +88,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-core</artifactId>
-		</dependency>
+			<artifactId>infinispan-client-hotrod</artifactId>
+		</dependency> -->
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-client-hotrod</artifactId>
+			<artifactId>infinispan-core</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
@@ -98,14 +111,9 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-netty4</artifactId>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-amqp-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jms-starter</artifactId>
-		</dependency> -->
+		<!-- <dependency> <groupId>org.apache.camel</groupId> <artifactId>camel-amqp-starter</artifactId> 
+			</dependency> <dependency> <groupId>org.apache.camel</groupId> <artifactId>camel-jms-starter</artifactId> 
+			</dependency> -->
 		<dependency>
 			<groupId>com.tracegroup.transformer</groupId>
 			<artifactId>transformer-runtime-skinny</artifactId>
@@ -116,14 +124,10 @@
 			<artifactId>currencylib</artifactId>
 			<version>1.0.11</version>
 		</dependency>
-<!-- 		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-		</dependency> -->
 		<dependency>
 			<groupId>com.redhat.firstbank.poc</groupId>
 			<artifactId>FCB91103G</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 		</dependency>
 	</dependencies>
 	<build>
