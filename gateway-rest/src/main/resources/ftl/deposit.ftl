@@ -12,7 +12,7 @@
   },
   "TxRq" : {
     "AcctNo" : "${headers.acctNo}",
-    "CustId": "${headers.custId}",
+    "CustID": "${headers.custId}",
     "InqType" : "1"
   }
 }
