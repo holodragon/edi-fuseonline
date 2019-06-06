@@ -5,18 +5,18 @@
         <restConfiguration bindingMode="auto" component="servlet"
             host="0.0.0.0" port="8080"/>
         <rest apiDocs="true" enableCORS="true" id="bank-rest">
-            <get id="deposit" uri="/deposit/{acctNo}/{custId}">
+            <get id="getDeposit" uri="/deposit/{acctNo}/{custId}">
+                <log message="REST getDeposit GET MESSAGE PARAMS acctNo:${header.acctNo}, custId:${header.custId}"/>
                 <to uri="direct:deposit"/>
             </get>
         </rest>
-        <route id="simple-route">
+        <route id="getDeposit-route">
             <from id="_from1" uri="direct:deposit"/>
             <log id="_log1" message="REST Input: ${body}"/>
             <to id="_to1" uri="freemarker:ftl/deposit.ftl"/>
-            <log id="_log2" message="REST Output ${body}"/>
-            <!-- <to id="_to2" pattern="InOut" uri="jms:queue:input.json?jmsMessageType=Text&amp;replyTo=output.json"/> -->
+            <log id="_log2" message="SEND AMQ MESSAGE BODY: ${body}"/>
             <to id="_to2" pattern="InOut" uri="amqp:queue:input.json?jmsMessageType=Text&amp;replyTo=output.json"/>
-            <log id="_log3" message="REST Return Body: IN ${in.body}, OUT ${out.body}"/>
+            <log id="_log3" message="GET AMQ MESSAGE BODY: ${body}"/>
         </route>
     </camelContext>
 </beans>

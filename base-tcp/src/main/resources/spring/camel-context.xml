@@ -1,59 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
-    <!--     <bean class="org.infinispan.manager.DefaultCacheManager"
-        destroy-method="stop" id="cacheManager" init-method="start" scope="singleton">
-        <constructor-arg type="java.lang.String" value="infinispan.xml"/>
-    </bean> -->
     <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
-        <route id="base-tcp-request-route">
+        <route id="amq-tcp-request-route">
             <from id="_from1" uri="amqp:queue:input.json?disableReplyTo=true"/>
-            <log id="_log3" message=">>> ${body}"/>
-            <to id="_to3" uri="txfrmr:com.redhat.firstbank.poc/MapREQ"/>
-            <log id="_log1" message=">>> ${body}"/>
-            <log id="_log5" message=">>> AcctNo: [${header.AcctNo}]"/>
-            <log id="_log6" message=">>> JMSCorrelationID: ${header.JMSCorrelationID}"/>
+            <log id="_log1" message="AMQ GET MESSAGE BODY: ${body}"/>
+            <to id="_to1" uri="txfrmr:com.redhat.firstbank.poc/MapREQ"/>
+            <log id="_log2" message="TRANS OUTPUT BODY: ${body}"/>
+            <log id="_log3" message="Header - AcctNo: ${header.AcctNo}"/>
+            <log id="_log4" message="Header - JMSCorrelationID: ${header.JMSCorrelationID}"/>
             <setHeader headerName="CamelInfinispanKey" id="_setHeader1">
                 <simple>${header.AcctNo}</simple>
             </setHeader>
             <setHeader headerName="CamelInfinispanValue" id="_setHeader2">
                 <simple>${header.JMSCorrelationID}</simple>
             </setHeader>
-            <log id="_log4" message=">>> ${body}"/>
-            <to id="_to2" uri="infinispan://default?resultHeader=cacheResult&amp;cacheContainer=#defaultCacheManager"/>
-            <log id="_log7" message=">>> ${body}"/>
-            <log id="_log8" message="cacheResult ${header.cacheResult}"/>
-            <log id="_log9" message="CamelInfinispanOperationResult ${header.CamelInfinispanOperationResult}"/>
-            <!-- <to id="_to5" uri="infinispan://foo?operation=GET&amp;resultHeader=cacheResult"/> 
-				<log id="_log10" message="CamelInfinispanKey >>> ${header.CamelInfinispanKey}"/> 
-				<log id="_log11" message="cacheResult ${header.cacheResult}"/> <log id="_log12" 
-				message="CamelInfinispanOperationResult ${header.CamelInfinispanOperationResult}"/> 
-				<log id="_log13" message=">>> ${body}"/> -->
-            <to id="_to7" uri="netty4:tcp://{{socket.out.host}}:{{socket.out.port}}?reuseChannel=true&amp;sync=false&amp;producerPoolMaxActive=1&amp;producerPoolMinEvictableIdle=0"/>
+            <to id="_to2" uri="infinispan://default?cacheContainer=#defaultCacheManager&amp;resultHeader=cacheResult"/>
+            <log id="_log5" message="JDG RETURN HEADER - cacheResult: ${header.cacheResult}"/>
+            <log id="_log6" message="JDG RETURN HEADER - CamelInfinispanOperationResult: ${header.CamelInfinispanOperationResult} "/>
+            <log id="_log7" message="SEND NETTY MESSAGE BODY: ${body}"/>
+            <to id="_to3" uri="netty4:tcp://{{socket.out.host}}:{{socket.out.port}}?reuseChannel=true&amp;sync=false&amp;producerPoolMaxActive=1&amp;producerPoolMinEvictableIdle=0"/>
         </route>
-        <route id="base-tcp-response-route" shutdownRoute="Defer">
+        <route id="amq-tcp-response-route" shutdownRoute="Defer">
             <from id="_from2" uri="netty4:tcp://{{socket.in.host}}:{{socket.in.port}}?reuseChannel=true&amp;sync=false&amp;producerPoolMaxActive=1&amp;producerPoolMinEvictableIdle=0"/>
-            <log id="_log2" message=">>> ${body}"/>
+            <log id="_log8" message="NETTY GET MESSAGE BODY: ${body}"/>
             <to id="_to4" uri="txfrmr:com.redhat.firstbank.poc/MapRESP"/>
-            <log id="_log2" message=">>> ${body}"/>
+            <log id="_log9" message="TRANS OUTPUT BODY: ${body}"/>
             <setHeader headerName="CamelInfinispanKey" id="_setHeader3">
                 <simple>${header.respAcctNo}</simple>
             </setHeader>
-            <!-- <setHeader headerName="CamelInfinispanOperation" id="_setHeader5">
-                <constant>CamelInfinispanOperationGet</constant>
-            </setHeader> -->
-            <to id="_to6" uri="infinispan://default?cacheContainer=#defaultCacheManager&amp;resultHeader=lookupResult&amp;command=GET"/>
+            <log id="_log10" message="JDG KEY GET: ${header.CamelInfinispanKey}"/>
+            <to id="_to5" uri="infinispan://default?command=GET&amp;cacheContainer=#defaultCacheManager&amp;resultHeader=lookupResult"/>
+            <log id="_log11" message="JDG KEY GET Body - lookupResult >>> ${header.lookupResult}"/>
             <setHeader headerName="JMSCorrelationID" id="_setHeader4">
                 <simple>${header.lookupResult}</simple>
             </setHeader>
-            <log id="_log12" message="CamelInfinispanKey >>> ${header.CamelInfinispanKey}"/>
-            <log id="_log13" message="lookupResult >>> ${header.lookupResult}"/>
-            <log id="_log14" message="JMSCorrelationID >>> ${header.JMSCorrelationID}"/>
-            <log id="_log15" message=">>> ${body}"/>
-            <to id="_to1" uri="amqp:queue:output.json"/>
-            <log id="_log10" message="CamelInfinispanKey >>> ${header.CamelInfinispanKey}"/>
-            <to id="_to5" uri="infinispan://default?command=REMOVE&amp;cacheContainer=#defaultCacheManager&amp;resultHeader=lookupResult"/>
-            <log id="_log11" message="lookupResult >>> ${header.lookupResult}"/>
+            <log id="_log12" message="SET HEADER JMSCorrelationID: ${header.JMSCorrelationID}"/>
+            <log id="_log13" message="AMQ RETURN BODY: ${body}"/>
+            <log id="_log14" message="SEND AMQ MESSAGE BODY: ${body}"/>
+            <to id="_to6" uri="amqp:queue:output.json"/>
+            <log id="_log15" message="JDG KEY DELETE: ${header.CamelInfinispanKey}"/>
+            <to id="_to7" uri="infinispan://default?command=REMOVE&amp;cacheContainer=#defaultCacheManager&amp;resultHeader=lookupResult"/>
+            <log id="_log16" message="JDG KEY DELETE Body - lookupResult: ${header.lookupResult}"/>
         </route>
     </camelContext>
 </beans>
