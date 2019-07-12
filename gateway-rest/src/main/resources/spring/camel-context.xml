@@ -6,7 +6,6 @@
             host="0.0.0.0" port="8080"/>
         <rest apiDocs="true" enableCORS="true" id="bank-rest">
             <get id="getDeposit" uri="/deposit/{acctNo}/{custId}">
-                <log message="REST getDeposit GET MESSAGE PARAMS acctNo:${header.acctNo}, custId:${header.custId}"/>
                 <to uri="direct:deposit"/>
             </get>
         </rest>
